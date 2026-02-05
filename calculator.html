@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Инструменты - Business Orbit</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #000000;
+            color: #ffffff;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        /* Remove spinner arrows from number inputs */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+
+        /* Star Background */
+        .star-background {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: move-twinkle 10s linear infinite;
+        }
+
+        @keyframes move-twinkle {
+            0% {
+                transform: translateY(0);
+                opacity: 0.8;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+
+            100% {
+                transform: translateY(-100px);
+                opacity: 0.8;
+            }
+        }
+
+        /* Main Container */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 30px;
+        }
+
+        /* Tab Switcher */
+        .tab-switcher {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 14px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .tab-button.active {
+            background-color: #1098F7;
+            color: #ffffff;
+        }
+
+        .tab-button.inactive {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .tab-button.inactive:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Calculator Card */
+        .calculator-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 24px;
+        }
+
+        .calculator-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 24px;
+        }
+
+        /* Input Group */
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 16px 18px;
+            font-size: 18px;
+            font-weight: 500;
+            color: #ffffff;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #1098F7;
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        /* Calculate Button */
+        .calculate-button {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+            background: #1098F7;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-top: 24px;
+            margin-bottom: 24px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .calculate-button:hover {
+            background: #0d86d9;
+            transform: translateY(-2px);
+        }
+
+        .calculate-button:active {
+            transform: translateY(0);
+        }
+
+        /* Results */
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .result-row:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-size: 16px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .result-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .result-value.profit {
+            color: #1098F7;
+        }
+
+        .result-value.margin {
+            color: #FFD700;
+        }
+
+        /* Hidden Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Star Background -->
+    <div class="star-background" id="starBackground"></div>
+
+    <div class="container">
+        <h1>Инструменты</h1>
+
+        <!-- Tab Switcher (removed Чек-листы) -->
+        <div class="tab-switcher">
+            <button class="tab-button active" onclick="switchTab('strategy')">Стратегия</button>
+            <button class="tab-button inactive" onclick="switchTab('profit')">Прибыль</button>
+        </div>
+
+        <!-- Strategy Calculator Tab (NEW) -->
+        <div id="strategy-tab" class="tab-content active">
+            <div class="calculator-card">
+                <div class="calculator-title">Калькулятор стратегии</div>
+
+                <div class="input-group">
+                    <label class="input-label">Цель (RUB)</label>
+                    <input type="number" id="goal" class="input-field" placeholder="1000000" value="1000000">
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Средний чек (RUB)</label>
+                    <input type="number" id="avgCheck" class="input-field" placeholder="50000" value="50000">
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Конверсия (%)</label>
+                    <input type="number" id="conversion" class="input-field" placeholder="10" value="10" step="0.1">
+                </div>
+
+                <button class="calculate-button" onclick="calculateStrategy()">Рассчитать</button>
+
+                <div class="result-row">
+                    <span class="result-label">Продаж</span>
+                    <span class="result-value" id="salesNeeded">0</span>
+                </div>
+
+                <div class="result-row">
+                    <span class="result-label">Лидов</span>
+                    <span class="result-value profit" id="leadsNeeded">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profit Calculator Tab (EXISTING) -->
+        <div id="profit-tab" class="tab-content">
+            <div class="calculator-card">
+                <div class="calculator-title">Калькулятор прибыли</div>
+
+                <div class="input-group">
+                    <label class="input-label">Выручка (RUB)</label>
+                    <input type="number" id="revenue" class="input-field" placeholder="0" value="0">
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Расходы (RUB)</label>
+                    <input type="number" id="expenses" class="input-field" placeholder="0" value="0">
+                </div>
+
+                <button class="calculate-button" onclick="calculateProfit()">Рассчитать</button>
+
+                <div class="result-row">
+                    <span class="result-label">Чистая прибыль</span>
+                    <span class="result-value profit" id="netProfit">0</span>
+                </div>
+
+                <div class="result-row">
+                    <span class="result-label">Маржинальность</span>
+                    <span class="result-value margin" id="margin">0%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Generate star background
+        function generateStars() {
+            const starBackground = document.getElementById('starBackground');
+            const starCount = 50;
+
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.width = `${Math.random() * 2 + 1}px`;
+                star.style.height = star.style.width;
+                star.style.animationDuration = `${10 + Math.random() * 5}s`;
+                star.style.animationDelay = `-${Math.random() * 5}s`;
+                starBackground.appendChild(star);
+            }
+        }
+
+        // Tab switching functionality
+        function switchTab(tabName) {
+            // Update tab buttons
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('inactive');
+            });
+
+            event.target.classList.remove('inactive');
+            event.target.classList.add('active');
+
+            // Update tab content
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+
+        // Strategy Calculator Logic
+        function calculateStrategy() {
+            const goal = parseFloat(document.getElementById('goal').value) || 0;
+            const avgCheck = parseFloat(document.getElementById('avgCheck').value) || 0;
+            const conversion = parseFloat(document.getElementById('conversion').value) || 0;
+
+            if (avgCheck === 0 || conversion === 0) {
+                alert('Пожалуйста, заполните все поля корректными значениями');
+                return;
+            }
+
+            // Calculate sales needed (round up)
+            const salesNeeded = Math.ceil(goal / avgCheck);
+
+            // Calculate leads needed (round up)
+            const leadsNeeded = Math.ceil((salesNeeded / conversion) * 100);
+
+            // Display results
+            document.getElementById('salesNeeded').textContent = salesNeeded.toLocaleString('ru-RU');
+            document.getElementById('leadsNeeded').textContent = leadsNeeded.toLocaleString('ru-RU');
+        }
+
+        // Profit Calculator Logic (EXISTING)
+        function calculateProfit() {
+            const revenue = parseFloat(document.getElementById('revenue').value) || 0;
+            const expenses = parseFloat(document.getElementById('expenses').value) || 0;
+
+            // Calculate net profit
+            const netProfit = revenue - expenses;
+
+            // Calculate margin percentage
+            const margin = revenue > 0 ? ((netProfit / revenue) * 100).toFixed(0) : 0;
+
+            // Display results
+            document.getElementById('netProfit').textContent = netProfit.toLocaleString('ru-RU');
+            document.getElementById('margin').textContent = `${margin}%`;
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            generateStars();
+        });
+
+        // Auto-calculate on input change for better UX
+        document.addEventListener('DOMContentLoaded', () => {
+            // Strategy calculator inputs
+            ['goal', 'avgCheck', 'conversion'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('input', calculateStrategy);
+                }
+            });
+
+            // Profit calculator inputs
+            ['revenue', 'expenses'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('input', calculateProfit);
+                }
+            });
+
+            // Initial calculation
+            calculateStrategy();
+            calculateProfit();
+        });
+    </script>
+</body>
+
+</html>

@@ -1,44 +1,133 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ClipboardList, Calculator as CalcIcon, Plus } from 'lucide-react';
 
-type ToolType = 'calc' | 'checklist';
+type CalcType = 'strategy' | 'profit';
 
 const Tools: React.FC = () => {
-  const [activeTool, setActiveTool] = useState<ToolType>('calc');
+  const [activeCalc, setActiveCalc] = useState<CalcType>('strategy');
 
   return (
     <div className="px-6 pt-12 pb-24 h-full overflow-y-auto flex flex-col">
       <h1 className="text-3xl font-bold text-white mb-6">Инструменты</h1>
 
-      {/* Tool Switcher */}
+      {/* Calculator Tab Switcher - Two tabs only */}
       <div className="flex p-1 bg-white/5 rounded-xl border border-white/10 mb-8">
         <button
-          onClick={() => setActiveTool('calc')}
-          className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
-            activeTool === 'calc' ? 'bg-[#1098F7] text-white shadow-lg' : 'text-gray-400 hover:text-white'
-          }`}
+          onClick={() => setActiveCalc('strategy')}
+          className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${activeCalc === 'strategy' ? 'bg-[#1098F7] text-white shadow-lg' : 'text-gray-400 hover:text-white'
+            }`}
         >
-          Калькулятор
+          Стратегия
         </button>
         <button
-          onClick={() => setActiveTool('checklist')}
-          className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
-            activeTool === 'checklist' ? 'bg-[#1098F7] text-white shadow-lg' : 'text-gray-400 hover:text-white'
-          }`}
+          onClick={() => setActiveCalc('profit')}
+          className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${activeCalc === 'profit' ? 'bg-[#1098F7] text-white shadow-lg' : 'text-gray-400 hover:text-white'
+            }`}
         >
-          Чек-листы
+          Прибыль
         </button>
       </div>
 
       <div className="flex-1">
-        {activeTool === 'calc' ? <Calculator /> : <Checklists />}
+        {activeCalc === 'strategy' ? <StrategyCalculator /> : <ProfitCalculator />}
       </div>
     </div>
   );
 };
 
-const Calculator: React.FC = () => {
+// New Strategy Calculator Component
+const StrategyCalculator: React.FC = () => {
+  const [goal, setGoal] = useState<string>('1000000');
+  const [avgCheck, setAvgCheck] = useState<string>('50000');
+  const [conversion, setConversion] = useState<string>('10');
+
+  const goalVal = parseFloat(goal) || 0;
+  const avgCheckVal = parseFloat(avgCheck) || 0;
+  const conversionVal = parseFloat(conversion) || 0;
+
+  // Calculate sales needed (round up)
+  const salesNeeded = avgCheckVal > 0 ? Math.ceil(goalVal / avgCheckVal) : 0;
+
+  // Calculate leads needed (round up)
+  const leadsNeeded = conversionVal > 0 ? Math.ceil((salesNeeded / conversionVal) * 100) : 0;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="space-y-6"
+    >
+      <style>{`
+        /* Remove spinner arrows from number inputs */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+        input[type="number"] {
+          -moz-appearance: textfield;
+          appearance: textfield;
+        }
+      `}</style>
+
+      <div className="glass-panel p-6 rounded-2xl border border-white/10">
+        <h3 className="text-gray-400 text-sm mb-4 uppercase tracking-wider">Калькулятор Стратегии</h3>
+
+        <div className="space-y-4">
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">Цель (RUB)</label>
+            <input
+              type="number"
+              value={goal}
+              onChange={(e) => setGoal(e.target.value)}
+              placeholder="1000000"
+              className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white text-lg focus:outline-none focus:border-[#1098F7] transition-colors"
+            />
+          </div>
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">Средний чек (RUB)</label>
+            <input
+              type="number"
+              value={avgCheck}
+              onChange={(e) => setAvgCheck(e.target.value)}
+              placeholder="50000"
+              className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white text-lg focus:outline-none focus:border-[#1098F7] transition-colors"
+            />
+          </div>
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">Конверсия (%)</label>
+            <input
+              type="number"
+              value={conversion}
+              onChange={(e) => setConversion(e.target.value)}
+              placeholder="10"
+              step="0.1"
+              className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white text-lg focus:outline-none focus:border-[#1098F7] transition-colors"
+            />
+          </div>
+        </div>
+
+        <div className="mt-8 pt-6 border-t border-white/10">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-gray-400">Продаж</span>
+            <span className="text-xl font-bold text-white">
+              {salesNeeded.toLocaleString('ru-RU')}
+            </span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-gray-400">Лидов</span>
+            <span className="text-xl font-bold text-[#1098F7]">
+              {leadsNeeded.toLocaleString('ru-RU')}
+            </span>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// Existing Profit Calculator Component (kept as-is)
+const ProfitCalculator: React.FC = () => {
   const [revenue, setRevenue] = useState<string>('');
   const [expenses, setExpenses] = useState<string>('');
 
@@ -53,9 +142,22 @@ const Calculator: React.FC = () => {
       animate={{ opacity: 1, scale: 1 }}
       className="space-y-6"
     >
+      <style>{`
+        /* Remove spinner arrows from number inputs */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+        input[type="number"] {
+          -moz-appearance: textfield;
+          appearance: textfield;
+        }
+      `}</style>
+
       <div className="glass-panel p-6 rounded-2xl border border-white/10">
         <h3 className="text-gray-400 text-sm mb-4 uppercase tracking-wider">Калькулятор Прибыли</h3>
-        
+
         <div className="space-y-4">
           <div>
             <label className="text-xs text-gray-500 mb-1 block">Выручка (RUB)</label>
@@ -83,7 +185,7 @@ const Calculator: React.FC = () => {
           <div className="flex justify-between items-center mb-2">
             <span className="text-gray-400">Чистая прибыль</span>
             <span className={`text-xl font-bold ${profit >= 0 ? 'text-white' : 'text-red-400'}`}>
-              {profit.toLocaleString()}
+              {profit.toLocaleString('ru-RU')}
             </span>
           </div>
           <div className="flex justify-between items-center">
@@ -94,34 +196,6 @@ const Calculator: React.FC = () => {
           </div>
         </div>
       </div>
-    </motion.div>
-  );
-};
-
-const Checklists: React.FC = () => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="flex flex-col items-center justify-center h-[400px] text-center"
-    >
-      <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-6 relative">
-         <ClipboardList size={40} className="text-gray-600" />
-         {/* Floating animation effect */}
-         <motion.div 
-            animate={{ y: [-5, 5, -5] }} 
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute inset-0 border border-white/5 rounded-full"
-         />
-      </div>
-      <h3 className="text-xl font-bold text-white mb-2">Система чиста</h3>
-      <p className="text-gray-500 max-w-[250px] mb-8">
-        Создайте первый чек-лист для команды, чтобы навести порядок.
-      </p>
-      <button className="flex items-center gap-2 px-6 py-3 bg-[#1098F7] text-white rounded-xl font-bold active:scale-95 transition-transform shadow-lg shadow-[#1098F7]/20">
-        <Plus size={20} />
-        <span>Создать</span>
-      </button>
     </motion.div>
   );
 };

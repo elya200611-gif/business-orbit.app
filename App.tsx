@@ -39,9 +39,9 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="relative w-full h-screen bg-[#070708] text-white overflow-hidden">
+    <div className="relative w-full min-h-screen bg-[#070708] text-white">
       <StarBackground />
-      
+
       <AnimatePresence mode="wait">
         {!user.hasOnboarded ? (
           <motion.div
@@ -57,24 +57,23 @@ const App: React.FC = () => {
         ) : (
           <motion.div
             key="app"
-            className="flex flex-col h-full"
+            className="flex flex-col min-h-screen pb-[100px]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8 }}
           >
-            <div className="flex-1 relative">
-               <AnimatePresence mode="wait">
-                  <motion.div 
-                    key={activeTab}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ type: "tween", ease: "easeInOut", duration: 0.2 }}
-                    className="h-full"
-                  >
-                    {renderScreen()}
-                  </motion.div>
-               </AnimatePresence>
+            <div className="flex-1 relative overflow-auto">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ type: "tween", ease: "easeInOut", duration: 0.2 }}
+                >
+                  {renderScreen()}
+                </motion.div>
+              </AnimatePresence>
             </div>
             <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
           </motion.div>

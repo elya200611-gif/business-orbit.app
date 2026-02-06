@@ -198,32 +198,6 @@
       background: #0d86d9;
       transform: translateY(-2px);
     }
-
-    /* CTA Button Inside Tools */
-    .guest-cta-button {
-      display: block;
-      width: 100%;
-      max-width: 480px;
-      margin: 24px auto;
-      padding: 18px 32px;
-      background: linear-gradient(135deg, #1098F7 0%, #0d86d9 100%);
-      color: #ffffff;
-      font-size: 18px;
-      font-weight: 700;
-      border-radius: 16px;
-      text-decoration: none;
-      text-align: center;
-      border: none;
-      cursor: pointer;
-      font-family: 'Manrope', sans-serif;
-      box-shadow: 0 8px 24px rgba(16, 152, 247, 0.4);
-      transition: all 0.3s ease;
-    }
-
-    .guest-cta-button:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 12px 32px rgba(16, 152, 247, 0.6);
-    }
   </style>
 
   <script>
@@ -240,58 +214,70 @@
 
       // Wait for React app to fully render
       let retryCount = 0;
-      const maxRetries = 20;
+      const maxRetries = 30; // Increased for slower connections
 
       function initGuestMode() {
         // STEP 1: AUTO-SWITCH TO CALCULATOR (Инструменты)
-        const toolsTab = Array.from(document.querySelectorAll('button, a, span')).find(el =>
+        const toolsTab = Array.from(document.querySelectorAll('button')).find(el =>
           el.textContent?.trim() === 'Инструменты'
         );
 
         if (toolsTab) {
           console.log('✅ Found Инструменты tab, clicking...');
-          setTimeout(() => toolsTab.click(), 100);
+          setTimeout(() => toolsTab.click(), 200);
+
+          // Re-apply locks after navigation completes
+          setTimeout(applyTabLocks, 600);
         } else {
-          console.log('❌ Инструменты tab not found yet');
+          console.log(`❌ Инструменты tab not found yet (attempt ${retryCount + 1}/${maxRetries})`);
           if (retryCount < maxRetries) {
             retryCount++;
-            setTimeout(initGuestMode, 500);
+            setTimeout(initGuestMode, 300);
             return;
+          } else {
+            console.error('⚠️ Failed to find Инструменты tab after max retries');
           }
         }
 
-        // STEP 2: LOCK TABS (Главная, Программа, Профиль)
+        // STEP 2: CREATE CUSTOM MODAL
+        createGuestModal();
+
+        // STEP 3: Apply initial locks
+        applyTabLocks();
+      }
+
+      function applyTabLocks() {
+        // Lock tabs: Главная, Программа, Профиль
         const tabsToLock = ['Главная', 'Программа', 'Профиль'];
 
         tabsToLock.forEach(tabName => {
-          const tabElement = Array.from(document.querySelectorAll('button')).find(el =>
+          const tabElements = Array.from(document.querySelectorAll('button')).filter(el =>
             el.textContent?.trim() === tabName
           );
 
-          if (tabElement) {
-            console.log(`🔒 Locking tab: ${tabName}`);
-            tabElement.classList.add('locked-tab');
+          tabElements.forEach(tabElement => {
+            if (!tabElement.classList.contains('locked-tab')) {
+              console.log(`🔒 Locking tab: ${tabName}`);
+              tabElement.classList.add('locked-tab');
 
-            // Override pointer-events to capture click
-            tabElement.style.pointerEvents = 'auto';
+              // Override pointer-events to capture click
+              tabElement.style.pointerEvents = 'auto';
 
-            // Add click listener to show modal
-            tabElement.addEventListener('click', (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              showGuestModal();
-            }, true);
-          } else {
-            console.log(`❌ Tab not found: ${tabName}`);
-          }
+              // Remove existing listeners to avoid duplicates
+              const newElement = tabElement.cloneNode(true);
+              tabElement.parentNode.replaceChild(newElement, tabElement);
+
+              // Add click listener to show modal
+              newElement.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                showGuestModal();
+              }, true);
+            }
+          });
         });
-
-        // STEP 3: CREATE CUSTOM MODAL
-        createGuestModal();
-
-        // STEP 4: INJECT CTA BUTTON (Inside Tools/Calculator Section)
-        setTimeout(injectCTAButton, 1000);
       }
+
 
       function createGuestModal() {
         // Check if modal already exists
@@ -317,47 +303,27 @@
         }
       }
 
-      function injectCTAButton() {
-        // Check if button already exists
-        if (document.getElementById('guestCTAButton')) return;
-
-        // Find the Tools content area (look for calculator or tools container)
-        const toolsContainer = document.querySelector('[class*="container"]') ||
-          document.querySelector('main') ||
-          document.querySelector('#root > div > div > div');
-
-        if (toolsContainer) {
-          console.log('✅ Found tools container, injecting CTA button');
-
-          const ctaButton = document.createElement('a');
-          ctaButton.id = 'guestCTAButton';
-          ctaButton.href = 'https://t.me/YOUR_PAYMENT_LINK';
-          ctaButton.className = 'guest-cta-button';
-          ctaButton.textContent = 'Забрать полную версию системы';
-
-          // Insert at the bottom of the tools section
-          toolsContainer.appendChild(ctaButton);
-        } else {
-          console.log('❌ Tools container not found, retrying...');
-          setTimeout(injectCTAButton, 1000);
-        }
-      }
 
       // Initialize when DOM is ready
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
-          setTimeout(initGuestMode, 1000);
+          setTimeout(initGuestMode, 1500);
         });
       } else {
-        setTimeout(initGuestMode, 1000);
+        setTimeout(initGuestMode, 1500);
       }
 
-      // Also re-apply on React navigation changes
+      // Re-apply locks on React navigation changes
+      let lockCheckInterval;
       const observer = new MutationObserver(() => {
         const guestModal = document.getElementById('guestModal');
         if (!guestModal) {
           createGuestModal();
         }
+
+        // Re-apply locks periodically to handle React updates
+        clearTimeout(lockCheckInterval);
+        lockCheckInterval = setTimeout(applyTabLocks, 500);
       });
 
       observer.observe(document.body, { childList: true, subtree: true });

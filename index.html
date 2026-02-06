@@ -227,8 +227,8 @@
         // We'll inject the completed state before React initializes
         console.log('⚡ Skipping onboarding for guest mode...');
 
-        // Try to find and click the onboarding buttons automatically
-        setTimeout(skipOnboarding, 100);
+        // Try to find and click the onboarding buttons automatically - start immediately
+        skipOnboarding();
       } catch (error) {
         console.error('Error setting up guest mode:', error);
       }
@@ -243,8 +243,8 @@
           console.log('✅ Found welcome button, clicking...');
           startButton.click();
 
-          // After clicking, wait and fill the profile form
-          setTimeout(fillProfileForm, 500);
+          // After clicking, fill the profile form quickly
+          setTimeout(fillProfileForm, 150);
         } else {
           // If already past welcome screen, try filling form directly
           fillProfileForm();
@@ -263,7 +263,7 @@
           const event = new Event('input', { bubbles: true });
           nameInput.dispatchEvent(event);
 
-          // Select "Собственник" role button
+          // Select "Собственник" role button - very fast
           setTimeout(() => {
             const roleButtons = Array.from(document.querySelectorAll('button'));
             const ownerButton = roleButtons.find(el => el.textContent?.includes('Собственник'));
@@ -299,12 +299,29 @@
                   // Maybe already completed, try initializing guest mode
                   setTimeout(initGuestMode, 500);
                 }
-              }, 300);
-            }, 300);
-          }, 300);
+              }, 50);
+            }, 50);
+          }, 50);
+        } else if (nameInput && nameInput.value) {
+          // Name already filled, skip to clicking submit
+          console.log('ℹ️ Form already filled, checking for submit button...');
+          setTimeout(() => {
+            const submitButton = Array.from(document.querySelectorAll('button')).find(el =>
+              el.textContent?.includes('Поехали')
+            );
+            if (submitButton) {
+              console.log('✅ Clicking submit button...');
+              submitButton.click();
+              setTimeout(initGuestMode, 800);
+            } else {
+              // No submit button, maybe already completed
+              setTimeout(initGuestMode, 300);
+            }
+          }, 50);
         } else {
-          // Form already filled or not found, try initializing guest mode
-          setTimeout(initGuestMode, 500);
+          // Form not found yet, might already be past or loading - try guest mode
+          console.log('⚠️ Form not found, initializing guest mode...');
+          setTimeout(initGuestMode, 300);
         }
       }
 

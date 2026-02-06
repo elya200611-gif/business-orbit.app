@@ -206,11 +206,107 @@
 
       // Check if Guest Mode is active
       const urlParams = new URLSearchParams(window.location.search);
-      const isGuestMode = urlParams.get('mode') === 'guest' || urlParams.toString() === '';
+      const isGuestMode = urlParams.get('mode') === 'guest';
 
       if (!isGuestMode) return;
 
       console.log('🔒 Guest Mode Active');
+
+      // CRITICAL: Skip onboarding automatically for guest users
+      // This allows them to see the main app immediately
+      try {
+        // Create a dummy user state that marks onboarding as complete
+        const guestUserState = {
+          hasOnboarded: true,
+          name: 'Гость',
+          role: 'owner',
+          focus: 'finance'
+        };
+
+        // React might be using localStorage or sessionStorage for state persistence
+        // We'll inject the completed state before React initializes
+        console.log('⚡ Skipping onboarding for guest mode...');
+
+        // Try to find and click the onboarding buttons automatically
+        setTimeout(skipOnboarding, 100);
+      } catch (error) {
+        console.error('Error setting up guest mode:', error);
+      }
+
+      function skipOnboarding() {
+        // Find and click "Начать настройку" button (Welcome screen)
+        const startButton = Array.from(document.querySelectorAll('button')).find(el =>
+          el.textContent?.includes('Начать настройку')
+        );
+
+        if (startButton) {
+          console.log('✅ Found welcome button, clicking...');
+          startButton.click();
+
+          // After clicking, wait and fill the profile form
+          setTimeout(fillProfileForm, 500);
+        } else {
+          // If already past welcome screen, try filling form directly
+          fillProfileForm();
+        }
+      }
+
+      function fillProfileForm() {
+        // Find name input field
+        const nameInput = document.querySelector('input[type="text"]');
+
+        if (nameInput && !nameInput.value) {
+          console.log('✅ Found name input, filling...');
+          nameInput.value = 'Гость';
+
+          // Trigger React's onChange event
+          const event = new Event('input', { bubbles: true });
+          nameInput.dispatchEvent(event);
+
+          // Select "Собственник" role button
+          setTimeout(() => {
+            const roleButtons = Array.from(document.querySelectorAll('button'));
+            const ownerButton = roleButtons.find(el => el.textContent?.includes('Собственник'));
+
+            if (ownerButton) {
+              console.log('✅ Found owner button, clicking...');
+              ownerButton.click();
+            }
+
+            // Select "Финансы" focus button
+            setTimeout(() => {
+              const focusButtons = Array.from(document.querySelectorAll('button'));
+              const financeButton = focusButtons.find(el => el.textContent?.includes('Финансы'));
+
+              if (financeButton) {
+                console.log('✅ Found finance button, clicking...');
+                financeButton.click();
+              }
+
+              // Click "Поехали" submit button
+              setTimeout(() => {
+                const submitButton = Array.from(document.querySelectorAll('button')).find(el =>
+                  el.textContent?.includes('Поехали')
+                );
+
+                if (submitButton) {
+                  console.log('✅ Found submit button, clicking...');
+                  submitButton.click();
+
+                  // Now initialize guest mode lockdown
+                  setTimeout(initGuestMode, 1000);
+                } else {
+                  // Maybe already completed, try initializing guest mode
+                  setTimeout(initGuestMode, 500);
+                }
+              }, 300);
+            }, 300);
+          }, 300);
+        } else {
+          // Form already filled or not found, try initializing guest mode
+          setTimeout(initGuestMode, 500);
+        }
+      }
 
       // Wait for React app to fully render
       let retryCount = 0;
@@ -287,8 +383,8 @@
           <div id="guestModal" class="guest-modal-overlay">
             <div class="guest-modal">
               <button class="guest-modal-close" onclick="document.getElementById('guestModal').classList.remove('active')">×</button>
-              <p class="guest-modal-text">🔒 Раздел доступен в полной версии Business Orbit</p>
-              <a href="https://t.me/YOUR_PAYMENT_LINK" class="guest-modal-button">Получить пошаговый план</a>
+              <p class="guest-modal-text">🔒 Раздел доступен в полной версии Бизнес-Орбиты</p>
+              <a href="https://t.me/BusinessOrbit_Bot" class="guest-modal-button">Получить детальный расчет в Telegram</a>
             </div>
           </div>
         `;

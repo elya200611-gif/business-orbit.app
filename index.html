@@ -100,6 +100,270 @@
     window.Telegram.WebApp.setHeaderColor('#070708'); 
   </script>
 
+  <!-- GUEST MODE: Auto-Switch, Lock Tabs, Custom Modal, CTA Injection -->
+  <style>
+    /* Locked Tab Styling */
+    .locked-tab {
+      position: relative;
+      filter: grayscale(100%);
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .locked-tab::after {
+      content: '🔒';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 16px;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    /* Custom Dark Modal */
+    .guest-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 99999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .guest-modal-overlay.active {
+      display: flex;
+    }
+
+    .guest-modal {
+      background: #070708;
+      border: 1px solid rgba(16, 152, 247, 0.3);
+      border-radius: 20px;
+      padding: 32px 24px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 8px 32px rgba(16, 152, 247, 0.2);
+    }
+
+    .guest-modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 24px;
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s;
+    }
+
+    .guest-modal-close:hover {
+      color: #ffffff;
+    }
+
+    .guest-modal-text {
+      font-size: 18px;
+      color: #ffffff;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    .guest-modal-button {
+      display: inline-block;
+      padding: 16px 32px;
+      background: #1098F7;
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 12px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+      font-family: 'Manrope', sans-serif;
+    }
+
+    .guest-modal-button:hover {
+      background: #0d86d9;
+      transform: translateY(-2px);
+    }
+
+    /* CTA Button Inside Tools */
+    .guest-cta-button {
+      display: block;
+      width: 100%;
+      max-width: 480px;
+      margin: 24px auto;
+      padding: 18px 32px;
+      background: linear-gradient(135deg, #1098F7 0%, #0d86d9 100%);
+      color: #ffffff;
+      font-size: 18px;
+      font-weight: 700;
+      border-radius: 16px;
+      text-decoration: none;
+      text-align: center;
+      border: none;
+      cursor: pointer;
+      font-family: 'Manrope', sans-serif;
+      box-shadow: 0 8px 24px rgba(16, 152, 247, 0.4);
+      transition: all 0.3s ease;
+    }
+
+    .guest-cta-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px rgba(16, 152, 247, 0.6);
+    }
+  </style>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // Check if Guest Mode is active
+      const urlParams = new URLSearchParams(window.location.search);
+      const isGuestMode = urlParams.get('mode') === 'guest' || urlParams.toString() === '';
+
+      if (!isGuestMode) return;
+
+      console.log('🔒 Guest Mode Active');
+
+      // Wait for React app to fully render
+      let retryCount = 0;
+      const maxRetries = 20;
+
+      function initGuestMode() {
+        // STEP 1: AUTO-SWITCH TO CALCULATOR (Инструменты)
+        const toolsTab = Array.from(document.querySelectorAll('button, a, span')).find(el =>
+          el.textContent?.trim() === 'Инструменты'
+        );
+
+        if (toolsTab) {
+          console.log('✅ Found Инструменты tab, clicking...');
+          setTimeout(() => toolsTab.click(), 100);
+        } else {
+          console.log('❌ Инструменты tab not found yet');
+          if (retryCount < maxRetries) {
+            retryCount++;
+            setTimeout(initGuestMode, 500);
+            return;
+          }
+        }
+
+        // STEP 2: LOCK TABS (Главная, Программа, Профиль)
+        const tabsToLock = ['Главная', 'Программа', 'Профиль'];
+
+        tabsToLock.forEach(tabName => {
+          const tabElement = Array.from(document.querySelectorAll('button')).find(el =>
+            el.textContent?.trim() === tabName
+          );
+
+          if (tabElement) {
+            console.log(`🔒 Locking tab: ${tabName}`);
+            tabElement.classList.add('locked-tab');
+
+            // Override pointer-events to capture click
+            tabElement.style.pointerEvents = 'auto';
+
+            // Add click listener to show modal
+            tabElement.addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              showGuestModal();
+            }, true);
+          } else {
+            console.log(`❌ Tab not found: ${tabName}`);
+          }
+        });
+
+        // STEP 3: CREATE CUSTOM MODAL
+        createGuestModal();
+
+        // STEP 4: INJECT CTA BUTTON (Inside Tools/Calculator Section)
+        setTimeout(injectCTAButton, 1000);
+      }
+
+      function createGuestModal() {
+        // Check if modal already exists
+        if (document.getElementById('guestModal')) return;
+
+        const modalHTML = `
+          <div id="guestModal" class="guest-modal-overlay">
+            <div class="guest-modal">
+              <button class="guest-modal-close" onclick="document.getElementById('guestModal').classList.remove('active')">×</button>
+              <p class="guest-modal-text">🔒 Раздел доступен в полной версии Business Orbit</p>
+              <a href="https://t.me/YOUR_PAYMENT_LINK" class="guest-modal-button">Забрать полную версию</a>
+            </div>
+          </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+      }
+
+      function showGuestModal() {
+        const modal = document.getElementById('guestModal');
+        if (modal) {
+          modal.classList.add('active');
+        }
+      }
+
+      function injectCTAButton() {
+        // Check if button already exists
+        if (document.getElementById('guestCTAButton')) return;
+
+        // Find the Tools content area (look for calculator or tools container)
+        const toolsContainer = document.querySelector('[class*="container"]') ||
+          document.querySelector('main') ||
+          document.querySelector('#root > div > div > div');
+
+        if (toolsContainer) {
+          console.log('✅ Found tools container, injecting CTA button');
+
+          const ctaButton = document.createElement('a');
+          ctaButton.id = 'guestCTAButton';
+          ctaButton.href = 'https://t.me/YOUR_PAYMENT_LINK';
+          ctaButton.className = 'guest-cta-button';
+          ctaButton.textContent = 'Забрать полную версию системы';
+
+          // Insert at the bottom of the tools section
+          toolsContainer.appendChild(ctaButton);
+        } else {
+          console.log('❌ Tools container not found, retrying...');
+          setTimeout(injectCTAButton, 1000);
+        }
+      }
+
+      // Initialize when DOM is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+          setTimeout(initGuestMode, 1000);
+        });
+      } else {
+        setTimeout(initGuestMode, 1000);
+      }
+
+      // Also re-apply on React navigation changes
+      const observer = new MutationObserver(() => {
+        const guestModal = document.getElementById('guestModal');
+        if (!guestModal) {
+          createGuestModal();
+        }
+      });
+
+      observer.observe(document.body, { childList: true, subtree: true });
+    })();
+  </script>
+
 </head>
 
 <body>

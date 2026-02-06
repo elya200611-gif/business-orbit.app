@@ -235,19 +235,36 @@
 
       function skipOnboarding() {
         // Find and click "Начать настройку" button (Welcome screen)
-        const startButton = Array.from(document.querySelectorAll('button')).find(el =>
-          el.textContent?.includes('Начать настройку')
-        );
+        // Be more aggressive - search for ANY button with these words
+        const allButtons = Array.from(document.querySelectorAll('button'));
+        console.log(`📋 Found ${allButtons.length} total buttons on page`);
+        allButtons.forEach((btn, idx) => {
+          console.log(`  Button ${idx}: "${btn.textContent?.trim().substring(0, 30)}..."`);
+        });
+
+        const startButton = allButtons.find(el => {
+          const text = el.textContent || '';
+          return text.includes('Начать') || text.includes('настройку');
+        });
 
         if (startButton) {
-          console.log('✅ Found welcome button, clicking...');
+          console.log('✅ Found welcome button:', startButton.textContent.trim());
           startButton.click();
 
-          // After clicking, fill the profile form quickly
-          setTimeout(fillProfileForm, 150);
+          // After clicking, fill the profile form
+          setTimeout(fillProfileForm, 200);
         } else {
-          // If already past welcome screen, try filling form directly
-          fillProfileForm();
+          console.log('⚠️  Welcome button not found, checking if already on profile form...');
+          // Maybe already past welcome screen
+          const nameInput = document.querySelector('input[type="text"]');
+          if (nameInput) {
+            console.log('✅ Found profile form directly');
+            fillProfileForm();
+          } else {
+            // Still loading, retry after a delay
+            console.log('🔄 Retrying welcome screen detection in 200ms...');
+            setTimeout(skipOnboarding, 200);
+          }
         }
       }
 
